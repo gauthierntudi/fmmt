@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { AdminShell } from "@/components/admin/AdminShell";
+import { AdminAppShell } from "@/components/admin/AdminAppShell";
 import { ParticipantsTable } from "@/components/admin/ParticipantsTable";
 import { Prisma, TypeInscription } from "@prisma/client";
 
@@ -57,7 +57,7 @@ export default async function ParticipantsPage({ searchParams }: Props) {
   }));
 
   return (
-    <AdminShell user={session} active="participants">
+    <AdminAppShell user={session}>
       <ParticipantsTable
         initial={serialized}
         initialQuery={query}
@@ -67,6 +67,6 @@ export default async function ParticipantsPage({ searchParams }: Props) {
         pageSize={pageSize}
         canDelete={session.role === "SUPER_ADMIN"}
       />
-    </AdminShell>
+    </AdminAppShell>
   );
 }

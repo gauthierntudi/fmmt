@@ -38,10 +38,11 @@ Secrets GitHub requis (`Settings → Secrets and variables → Actions`) :
 
 ## Admin
 
-- URL : `/admin/login` (email + mot de passe)
-- Rôles : **SUPER_ADMIN** (tout + utilisateurs) · **STAFF** (inscriptions + export)
-- Seed super admin : `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` au `prisma db seed`
-- Forcer reset MDP seed : `ADMIN_PASSWORD_RESET=true`
+- URL : `/admin` — back-office (sidebar évolutive)
+- Login : `/admin/login` (email + mot de passe)
+- Rôles : **SUPER_ADMIN** · **STAFF**
+- Navigation centralisée : `src/lib/admin-nav.ts` (ajouter les futurs modules ici)
+- Seed super admin : `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME`
 
 ## Docker
 

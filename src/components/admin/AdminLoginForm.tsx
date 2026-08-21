@@ -25,7 +25,7 @@ export function AdminLoginForm() {
         setError("Email ou mot de passe incorrect");
         return;
       }
-      const next = searchParams.get("next") || "/admin/participants";
+      const next = searchParams.get("next") || "/admin";
       router.push(next);
       router.refresh();
     } catch {
@@ -36,8 +36,8 @@ export function AdminLoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} style={{ display: "grid", gap: "1rem" }}>
-      {error && <div className="form-error-banner">{error}</div>}
+    <form onSubmit={onSubmit} className="admin-login-form">
+      {error && <div className="admin-form-error">{error}</div>}
       <label>
         Email
         <input
@@ -46,14 +46,6 @@ export function AdminLoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="username"
-          style={{
-            display: "block",
-            width: "100%",
-            marginTop: 6,
-            padding: "0.75rem",
-            borderRadius: 12,
-            border: "1px solid #e2d8e6",
-          }}
         />
       </label>
       <label>
@@ -64,18 +56,10 @@ export function AdminLoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete="current-password"
-          style={{
-            display: "block",
-            width: "100%",
-            marginTop: 6,
-            padding: "0.75rem",
-            borderRadius: 12,
-            border: "1px solid #e2d8e6",
-          }}
         />
       </label>
-      <button type="submit" className="btn btn-primary trapezoid" disabled={loading} style={{ fontSize: "1em" }}>
-        {loading ? "…" : "Connexion"}
+      <button type="submit" className="admin-btn admin-btn-primary" disabled={loading}>
+        {loading ? "Connexion…" : "Se connecter"}
       </button>
     </form>
   );

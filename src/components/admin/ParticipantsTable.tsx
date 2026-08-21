@@ -115,14 +115,13 @@ export function ParticipantsTable({
             <option value="OFFICIEL">Officiel</option>
             <option value="MEDIA">Média</option>
           </select>
-          <button type="submit" className="btn btn-secondary trapezoid" style={{ fontSize: "1em" }}>
+          <button type="submit" className="admin-btn admin-btn-secondary">
             Filtrer
           </button>
         </form>
         <button
           type="button"
-          className="btn btn-success-2 trapezoid"
-          style={{ fontSize: "1em" }}
+          className="admin-btn admin-btn-accent"
           onClick={() => {
             window.location.href = "/api/admin/participants/export";
           }}
@@ -131,7 +130,7 @@ export function ParticipantsTable({
         </button>
       </div>
 
-      <div className="panel table-wrap">
+      <div className="admin-panel admin-table-wrap">
         {rows.length === 0 ? (
           <p>Aucune inscription</p>
         ) : (
@@ -161,8 +160,7 @@ export function ParticipantsTable({
                   <td>
                     <button
                       type="button"
-                      className="btn btn-primary trapezoid"
-                      style={{ fontSize: "0.85em", padding: "0.45rem 1rem" }}
+                      className="admin-btn admin-btn-primary"
                       onClick={() => setSelected(p)}
                     >
                       Détail
@@ -179,8 +177,7 @@ export function ParticipantsTable({
         <div className="admin-pagination">
           <button
             type="button"
-            className="btn btn-secondary trapezoid"
-            style={{ fontSize: "0.9em" }}
+            className="admin-btn admin-btn-secondary"
             disabled={page <= 1}
             onClick={() => pushFilters(page - 1)}
           >
@@ -191,8 +188,7 @@ export function ParticipantsTable({
           </span>
           <button
             type="button"
-            className="btn btn-secondary trapezoid"
-            style={{ fontSize: "0.9em" }}
+            className="admin-btn admin-btn-secondary"
             disabled={page >= totalPages}
             onClick={() => pushFilters(page + 1)}
           >
@@ -265,15 +261,18 @@ export function ParticipantsTable({
               {canDelete && (
                 <button
                   type="button"
-                  className="btn btn-secondary trapezoid"
-                  style={{ fontSize: "0.95em", background: "#c62828" }}
+                  className="admin-btn admin-btn-danger"
                   disabled={busy}
                   onClick={() => void removeParticipant(selected.id)}
                 >
                   Supprimer
                 </button>
               )}
-              <button type="button" className="btn btn-secondary trapezoid" onClick={() => setSelected(null)}>
+              <button
+                type="button"
+                className="admin-btn admin-btn-secondary"
+                onClick={() => setSelected(null)}
+              >
                 Fermer
               </button>
             </div>

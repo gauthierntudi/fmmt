@@ -109,9 +109,9 @@ export function UsersManager({
 
   return (
     <>
-      <div className="panel" style={{ marginBottom: "1.25rem" }}>
+      <div className="admin-panel" style={{ marginBottom: "1.25rem" }}>
         <h2 style={{ marginTop: 0, fontFamily: "cb, sans-serif" }}>Nouvel utilisateur</h2>
-        {error && <div className="form-error-banner">{error}</div>}
+        {error && <div className="admin-form-error">{error}</div>}
         <form onSubmit={createUser} className="admin-user-form">
           <input
             placeholder="Nom"
@@ -147,13 +147,13 @@ export function UsersManager({
             <option value="STAFF">Staff</option>
             <option value="SUPER_ADMIN">Super admin</option>
           </select>
-          <button type="submit" className="btn btn-primary trapezoid" disabled={busy} style={{ fontSize: "1em" }}>
+          <button type="submit" className="admin-btn admin-btn-primary" disabled={busy}>
             Créer
           </button>
         </form>
       </div>
 
-      <div className="panel table-wrap">
+      <div className="admin-panel admin-table-wrap">
         <table className="data">
           <thead>
             <tr>
@@ -175,8 +175,7 @@ export function UsersManager({
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     <button
                       type="button"
-                      className="btn btn-secondary trapezoid"
-                      style={{ fontSize: "0.8em", padding: "0.4rem 0.8rem" }}
+                      className="admin-btn admin-btn-secondary"
                       disabled={busy || u.id === currentUserId}
                       onClick={() =>
                         void patchUser(u.id, {
@@ -188,8 +187,7 @@ export function UsersManager({
                     </button>
                     <button
                       type="button"
-                      className="btn btn-secondary trapezoid"
-                      style={{ fontSize: "0.8em", padding: "0.4rem 0.8rem" }}
+                      className="admin-btn admin-btn-secondary"
                       disabled={busy || u.id === currentUserId}
                       onClick={() => void patchUser(u.id, { active: !u.active })}
                     >
@@ -197,8 +195,7 @@ export function UsersManager({
                     </button>
                     <button
                       type="button"
-                      className="btn btn-secondary trapezoid"
-                      style={{ fontSize: "0.8em", padding: "0.4rem 0.8rem", background: "#c62828" }}
+                      className="admin-btn admin-btn-danger"
                       disabled={busy || u.id === currentUserId}
                       onClick={() => void deleteUser(u.id)}
                     >
