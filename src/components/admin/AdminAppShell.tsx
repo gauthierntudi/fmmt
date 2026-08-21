@@ -3,13 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AdminSession } from "@/lib/auth";
 import {
   adminNavGroups,
   canSeeNavItem,
   findNavItem,
 } from "@/lib/admin-nav";
+import { AdminAvatar } from "@/components/admin/AdminAvatar";
+import { AdminProfileModal } from "@/components/admin/AdminProfileModal";
+import { AdminTopbarControls } from "@/components/admin/AdminTopbarControls";
 
 function NavIcon({ id }: { id: string }) {
   const common = {
@@ -120,7 +123,13 @@ export function AdminAppShell({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profile, setProfile] = useState(user);
   const current = findNavItem(pathname);
+
+  useEffect(() => {
+    setProfile(user);
+  }, [user]);
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -146,15 +155,25 @@ export function AdminAppShell({
             />
           </div>
           <div className="admin-workspace">
-            <span className="admin-workspace-avatar" aria-hidden>
-              {user.name.slice(0, 1).toUpperCase()}
-            </span>
-            <div className="admin-workspace-meta">
-              <p className="admin-workspace-name">{user.name}</p>
-              <p className="admin-workspace-role">
-                {user.role === "SUPER_ADMIN" ? "Super admin" : "Staff"}
-              </p>
-            </div>
+            <button
+              type="button"
+              className="admin-workspace-profile"
+              onClick={() => setProfileOpen(true)}
+              title="Modifier mon profil"
+            >
+              <AdminAvatar
+                name={profile.name}
+                userId={profile.id}
+                photoUrl={profile.photoUrl}
+                className="admin-workspace-avatar"
+              />
+              <div className="admin-workspace-meta">
+                <p className="admin-workspace-name">{profile.name}</p>
+                <p className="admin-workspace-role">
+                  {profile.role === "SUPER_ADMIN" ? "Super admin" : "Staff"}
+                </p>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -260,9 +279,26 @@ export function AdminAppShell({
             <a className="admin-site-link" href="https://fmmt.events" target="_blank" rel="noreferrer">
               Site public
             </a>
-            <span className="admin-top-avatar" aria-hidden>
-              {user.name.slice(0, 1).toUpperCase()}
-            </span>
+            <AdminTopbarControls userName={profile.name} />
+            <button
+              type="button"
+              className="admin-top-user"
+              title="Modifier mon profil"
+              onClick={() => setProfileOpen(true)}
+            >
+              <AdminAvatar
+                name={profile.name}
+                userId={profile.id}
+                photoUrl={profile.photoUrl}
+                className="admin-top-avatar"
+              />
+              <div className="admin-top-user-meta">
+                <p className="admin-top-user-name">{profile.name}</p>
+                <p className="admin-top-user-role">
+                  {profile.role === "SUPER_ADMIN" ? "Super admin" : "Staff"}
+                </p>
+              </div>
+            </button>
           </div>
         </header>
 
@@ -274,6 +310,16 @@ export function AdminAppShell({
         className="admin-backdrop"
         aria-label="Fermer le menu"
         onClick={() => setOpen(false)}
+      />
+
+      <AdminProfileModal
+        user={profile}
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        onSaved={(next) => {
+          setProfile(next);
+          router.refresh();
+        }}
       />
     </div>
   );

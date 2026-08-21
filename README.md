@@ -4,7 +4,7 @@ Migration Next.js / Prisma / PostgreSQL du flux d'inscription FMMT. Le site PHP 
 
 ## Stack
 
-- Next.js 15 (App Router) + TypeScript + Tailwind
+- Next.js 16 (App Router) + TypeScript + Tailwind
 - Prisma + PostgreSQL
 - next-intl (FR / EN)
 - Zod + React Hook Form (wizard)

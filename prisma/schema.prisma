@@ -78,6 +78,7 @@ model AdminUser {
   id           String    @id @default(cuid())
   email        String    @unique
   name         String
+  photoUrl     String?
   passwordHash String
   role         AdminRole @default(STAFF)
   active       Boolean   @default(true)

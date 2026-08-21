@@ -11,6 +11,7 @@ export type AdminSession = {
   email: string;
   name: string;
   role: AdminRole;
+  photoUrl: string | null;
 };
 
 function getSecret() {
@@ -35,6 +36,7 @@ export async function createAdminSession(user: AdminSession) {
     email: user.email,
     name: user.name,
     role: user.role,
+    photoUrl: user.photoUrl,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -67,35 +69,44 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     const email = String(payload.email || "");
     const name = String(payload.name || "");
     const role = payload.role as AdminRole;
+    const photoUrl =
+      typeof payload.photoUrl === "string" && payload.photoUrl
+        ? payload.photoUrl
+        : null;
     if (!id || !email || (role !== "SUPER_ADMIN" && role !== "STAFF")) {
       return null;
     }
-    return { id, email, name, role };
+    return { id, email, name, role, photoUrl };
   } catch {
     return null;
   }
 }
 
 export async function isAdminAuthenticated(): Promise<boolean> {
-  return Boolean(await getAdminSession());
+  return Boolean(await requireAdminSession());
 }
 
 export async function requireAdminSession(): Promise<AdminSession | null> {
   const session = await getAdminSession();
   if (!session) return null;
 
-  const user = await prisma.adminUser.findUnique({ where: { id: session.id } });
-  if (!user || !user.active) {
-    await clearAdminSession();
+  try {
+    const user = await prisma.adminUser.findUnique({ where: { id: session.id } });
+    if (!user || !user.active) {
+      // Do not clear cookies here — Server Components cannot mutate cookies.
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      photoUrl: user.photoUrl,
+    };
+  } catch {
     return null;
   }
-
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-  };
 }
 
 export async function requireSuperAdmin(): Promise<AdminSession | null> {
@@ -122,6 +133,7 @@ export async function authenticateAdmin(
     email: user.email,
     name: user.name,
     role: user.role,
+    photoUrl: user.photoUrl,
   };
 }
 

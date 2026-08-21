@@ -52,6 +52,8 @@ services:
       TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-false}
+    volumes:
+      - fmmt_avatars:/app/public/uploads/avatars
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -87,3 +89,4 @@ services:
 volumes:
   fmmt_pg_data:
   fmmt_node_modules:
+  fmmt_avatars:

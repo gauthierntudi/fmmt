@@ -821,14 +821,6 @@ a {
   color: #555;
 }
 
-.admin-select {
-  padding: 0.7rem 0.9rem;
-  border-radius: 12px;
-  border: 1px solid #ced4da;
-  font: inherit;
-  background: #fff;
-}
-
 .admin-user-form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -836,8 +828,7 @@ a {
   align-items: center;
 }
 
-.admin-user-form input,
-.admin-user-form select {
+.admin-user-form input {
   padding: 0.7rem 0.9rem;
   border-radius: 12px;
   border: 1px solid #ced4da;

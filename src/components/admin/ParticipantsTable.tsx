@@ -2,6 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AdminSelect } from "@/components/admin/AdminSelect";
+
+const TYPE_OPTIONS = [
+  { value: "", label: "Tous les types" },
+  { value: "PARTICIPANT", label: "Participant" },
+  { value: "ARTISTE", label: "Artiste" },
+  { value: "OFFICIEL", label: "Officiel" },
+  { value: "MEDIA", label: "Média" },
+];
 
 type ParticipantRow = {
   id: string;
@@ -104,17 +113,12 @@ export function ParticipantsTable({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Rechercher (nom, email, téléphone, pays…)"
           />
-          <select
+          <AdminSelect
             value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="admin-select"
-          >
-            <option value="">Tous les types</option>
-            <option value="PARTICIPANT">Participant</option>
-            <option value="ARTISTE">Artiste</option>
-            <option value="OFFICIEL">Officiel</option>
-            <option value="MEDIA">Média</option>
-          </select>
+            onChange={setType}
+            options={TYPE_OPTIONS}
+            aria-label="Type d'inscription"
+          />
           <button type="submit" className="admin-btn admin-btn-secondary">
             Filtrer
           </button>
