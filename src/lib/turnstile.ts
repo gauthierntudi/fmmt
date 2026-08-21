@@ -5,16 +5,20 @@
  * VPS: TURNSTILE_ENABLED=true + keys
  */
 
+function cleanEnv(value: string | undefined) {
+  return (value ?? "").trim().replace(/^['"]|['"]$/g, "");
+}
+
 export function getTurnstileSiteKey() {
-  return process.env.TURNSTILE_SITE_KEY?.trim() || "";
+  return cleanEnv(process.env.TURNSTILE_SITE_KEY);
 }
 
 export function getTurnstileSecretKey() {
-  return process.env.TURNSTILE_SECRET_KEY?.trim() || "";
+  return cleanEnv(process.env.TURNSTILE_SECRET_KEY);
 }
 
 export function isTurnstileEnabled() {
-  const flag = process.env.TURNSTILE_ENABLED?.trim().toLowerCase();
+  const flag = cleanEnv(process.env.TURNSTILE_ENABLED).toLowerCase();
   if (flag === "false" || flag === "0" || flag === "off" || flag === "no") {
     return false;
   }
@@ -27,7 +31,6 @@ export function isTurnstileEnabled() {
     return true;
   }
 
-  // Default: only in production Node
   return process.env.NODE_ENV === "production";
 }
 
@@ -38,6 +41,7 @@ export async function verifyTurnstileToken(
   if (!isTurnstileEnabled()) return true;
 
   if (!token || typeof token !== "string" || token.length < 10) {
+    console.warn("[turnstile] missing token");
     return false;
   }
 
@@ -45,7 +49,9 @@ export async function verifyTurnstileToken(
   const body = new URLSearchParams();
   body.set("secret", secret);
   body.set("response", token);
-  if (remoteIp) body.set("remoteip", remoteIp);
+  if (remoteIp && remoteIp !== "127.0.0.1" && remoteIp !== "::1") {
+    body.set("remoteip", remoteIp);
+  }
 
   try {
     const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
@@ -54,7 +60,10 @@ export async function verifyTurnstileToken(
       body,
       cache: "no-store",
     });
-    const data = (await res.json()) as { success?: boolean };
+    const data = (await res.json()) as { success?: boolean; "error-codes"?: string[] };
+    if (!data.success) {
+      console.warn("[turnstile] siteverify failed", data["error-codes"] ?? data);
+    }
     return Boolean(data.success);
   } catch (error) {
     console.error("[turnstile] verify failed", error);

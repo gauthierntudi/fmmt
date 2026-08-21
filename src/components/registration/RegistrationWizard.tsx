@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { CountrySearchSelect } from "@/components/registration/CountrySearchSelect";
@@ -69,6 +69,29 @@ export function RegistrationWizard({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstile, setTurnstile] = useState({
+    enabled: turnstileEnabled,
+    siteKey: turnstileSiteKey,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/turnstile", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json: { enabled?: boolean; siteKey?: string }) => {
+        if (cancelled) return;
+        setTurnstile({
+          enabled: Boolean(json.enabled && json.siteKey),
+          siteKey: json.siteKey || "",
+        });
+      })
+      .catch(() => {
+        // keep server-rendered props
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const isRDC = form.paysCode === "CD";
 
@@ -135,7 +158,7 @@ export function RegistrationWizard({
 
   async function handleSubmit() {
     if (!validateStep(3)) return;
-    if (turnstileEnabled && !turnstileToken) {
+    if (turnstile.enabled && !turnstileToken) {
       setError(t("errors.TURNSTILE_REQUIRED"));
       return;
     }
@@ -162,7 +185,7 @@ export function RegistrationWizard({
       numeroVol: isRDC ? null : form.numeroVol || null,
       hotel: form.hotel || null,
       roomType: form.roomType || null,
-      turnstileToken: turnstileEnabled ? turnstileToken : undefined,
+      turnstileToken: turnstile.enabled ? turnstileToken : undefined,
     };
 
     try {
@@ -577,10 +600,10 @@ export function RegistrationWizard({
             )}
           </div>
           <div className="text-center mt-4">
-            {turnstileEnabled && turnstileSiteKey && (
+            {turnstile.enabled && turnstile.siteKey && (
               <div className="turnstile-box mb-3">
                 <TurnstileWidget
-                  siteKey={turnstileSiteKey}
+                  siteKey={turnstile.siteKey}
                   language={locale}
                   onToken={setTurnstileToken}
                   onExpire={() => setTurnstileToken("")}
@@ -593,7 +616,7 @@ export function RegistrationWizard({
             <button
               type="button"
               className="btn btn-success-2 trapezoid"
-              disabled={submitting || (turnstileEnabled && !turnstileToken)}
+              disabled={submitting || (turnstile.enabled && !turnstileToken)}
               onClick={handleSubmit}
             >
               {submitting ? t("submitting") : t("submit")}
