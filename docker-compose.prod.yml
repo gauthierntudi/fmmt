@@ -1,0 +1,14 @@
+# Production override — usage :
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Postgres non exposé. App uniquement sur loopback (Nginx reverse-proxy).
+
+services:
+  db:
+    ports: !reset []
+
+  web:
+    ports: !override
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production

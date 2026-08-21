@@ -1,0 +1,79 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fmmt}
+      POSTGRES_USER: ${POSTGRES_USER:-fmmt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fmmt}
+    ports:
+      - "${POSTGRES_PORT:-5435}:5432"
+    volumes:
+      - fmmt_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      target: deps
+    command: npx prisma migrate deploy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fmmt}:${POSTGRES_PASSWORD:-fmmt}@db:5432/${POSTGRES_DB:-fmmt}?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fmmt}:${POSTGRES_PASSWORD:-fmmt}@db:5432/${POSTGRES_DB:-fmmt}?schema=public
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-Festival Mondial de la Musique et du Tourisme <noreply@fmmt.events>}
+      RESEND_FROM_NAME: ${RESEND_FROM_NAME:-Festival Mondial de la Musique et du Tourisme}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-info@fmmt.events}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-in-production}
+      APP_URL: ${APP_URL:-https://fmmt.events}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # Dev hot-reload : docker compose --profile dev up db migrate web-dev
+  web-dev:
+    profiles: ["dev"]
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "apk add --no-cache libc6-compat openssl && npm ci && npx prisma generate && npx prisma migrate deploy && npm run dev -- --hostname 0.0.0.0 --port 3000"
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fmmt}:${POSTGRES_PASSWORD:-fmmt}@db:5432/${POSTGRES_DB:-fmmt}?schema=public
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-Festival Mondial de la Musique et du Tourisme <noreply@fmmt.events>}
+      RESEND_FROM_NAME: ${RESEND_FROM_NAME:-Festival Mondial de la Musique et du Tourisme}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-info@fmmt.events}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-in-production}
+      APP_URL: ${APP_URL:-https://fmmt.events}
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - .:/app
+      - fmmt_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  fmmt_pg_data:
+  fmmt_node_modules:

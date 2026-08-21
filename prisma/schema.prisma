@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TypeInscription {
+  PARTICIPANT
+  ARTISTE
+  OFFICIEL
+  MEDIA
+}
+
+enum LettreInvitation {
+  OUI
+  NON
+}
+
+enum TypeAcces {
+  AEROPORT
+  BEACH
+}
+
+model Participant {
+  id               String           @id @default(cuid())
+  email            String           @unique
+  nom              String
+  prenom           String
+  typeInscription  TypeInscription
+  paysCode         String
+  paysNom          String
+  telephone        String           @unique
+  fonction         String
+  societe          String?
+  lettreInvitation LettreInvitation
+  locale           String
+  createdAt        DateTime         @default(now())
+  voyage           Voyage?
+  hebergement      Hebergement?
+
+  @@index([createdAt])
+  @@index([nom, prenom])
+}
+
+model Voyage {
+  id                String    @id @default(cuid())
+  participantId     String    @unique
+  typeAcces         TypeAcces
+  dateArrivee       DateTime?
+  heureArrivee      String?
+  dateDepart        DateTime?
+  heureDepart       String?
+  compagnieAerienne String?
+  numeroVol         String?
+  participant       Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
+
+model Hebergement {
+  id            String  @id @default(cuid())
+  participantId String  @unique
+  hotel         String
+  roomType      String?
+  price         String?
+  distance      String?
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
