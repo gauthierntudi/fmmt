@@ -1,40 +1,48 @@
 import { redirect } from "next/navigation";
-import { isAdminAuthenticated, clearAdminSession } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { ParticipantsTable } from "@/components/admin/ParticipantsTable";
-
-async function logout() {
-  "use server";
-  await clearAdminSession();
-  redirect("/admin/login");
-}
+import { Prisma, TypeInscription } from "@prisma/client";
 
 type Props = {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; type?: string; page?: string }>;
 };
 
 export default async function ParticipantsPage({ searchParams }: Props) {
-  if (!(await isAdminAuthenticated())) {
-    redirect("/admin/login");
+  const session = await requireAdminSession();
+  if (!session) redirect("/admin/login");
+
+  const params = await searchParams;
+  const query = params.q?.trim() || "";
+  const type = params.type?.trim() || "";
+  const page = Math.max(1, Number(params.page || 1));
+  const pageSize = 50;
+
+  const where: Prisma.ParticipantWhereInput = {};
+  if (query) {
+    where.OR = [
+      { email: { contains: query, mode: "insensitive" } },
+      { nom: { contains: query, mode: "insensitive" } },
+      { prenom: { contains: query, mode: "insensitive" } },
+      { telephone: { contains: query, mode: "insensitive" } },
+      { paysNom: { contains: query, mode: "insensitive" } },
+    ];
+  }
+  if (type && Object.values(TypeInscription).includes(type as TypeInscription)) {
+    where.typeInscription = type as TypeInscription;
   }
 
-  const { q } = await searchParams;
-  const query = q?.trim() || "";
-
-  const participants = await prisma.participant.findMany({
-    where: query
-      ? {
-          OR: [
-            { email: { contains: query, mode: "insensitive" } },
-            { nom: { contains: query, mode: "insensitive" } },
-            { prenom: { contains: query, mode: "insensitive" } },
-          ],
-        }
-      : undefined,
-    include: { voyage: true, hebergement: true },
-    orderBy: { createdAt: "desc" },
-    take: 200,
-  });
+  const [total, participants] = await Promise.all([
+    prisma.participant.count({ where }),
+    prisma.participant.findMany({
+      where,
+      include: { voyage: true, hebergement: true },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
 
   const serialized = participants.map((p) => ({
     ...p,
@@ -49,19 +57,16 @@ export default async function ParticipantsPage({ searchParams }: Props) {
   }));
 
   return (
-    <div className="admin-shell">
-      <header className="brand-bar">
-        <div>
-          <div className="brand-mark">FMMT Admin</div>
-          <p className="brand-sub">Participants inscrits</p>
-        </div>
-        <form action={logout}>
-          <button type="submit" className="btn btn-secondary trapezoid" style={{ fontSize: "1em" }}>
-            Déconnexion
-          </button>
-        </form>
-      </header>
-      <ParticipantsTable initial={serialized} initialQuery={query} />
-    </div>
+    <AdminShell user={session} active="participants">
+      <ParticipantsTable
+        initial={serialized}
+        initialQuery={query}
+        initialType={type}
+        total={total}
+        page={page}
+        pageSize={pageSize}
+        canDelete={session.role === "SUPER_ADMIN"}
+      />
+    </AdminShell>
   );
 }

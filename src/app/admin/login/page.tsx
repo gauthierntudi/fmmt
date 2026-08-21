@@ -12,6 +12,7 @@ export default async function AdminLoginPage() {
     <div className="admin-shell">
       <main className="panel" style={{ maxWidth: 420, margin: "4rem auto" }}>
         <h1 style={{ marginTop: 0 }}>Admin FMMT</h1>
+        <p style={{ color: "#666", marginTop: 0 }}>Connexion email + mot de passe</p>
         <Suspense fallback={<p>…</p>}>
           <AdminLoginForm />
         </Suspense>

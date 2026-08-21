@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 export function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,10 +19,10 @@ export function AdminLoginForm() {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
-        setError("Mot de passe incorrect");
+        setError("Email ou mot de passe incorrect");
         return;
       }
       const next = searchParams.get("next") || "/admin/participants";
@@ -36,7 +37,25 @@ export function AdminLoginForm() {
 
   return (
     <form onSubmit={onSubmit} style={{ display: "grid", gap: "1rem" }}>
-      {error && <div className="form-error">{error}</div>}
+      {error && <div className="form-error-banner">{error}</div>}
+      <label>
+        Email
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="username"
+          style={{
+            display: "block",
+            width: "100%",
+            marginTop: 6,
+            padding: "0.75rem",
+            borderRadius: 12,
+            border: "1px solid #e2d8e6",
+          }}
+        />
+      </label>
       <label>
         Mot de passe
         <input
@@ -44,6 +63,7 @@ export function AdminLoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="current-password"
           style={{
             display: "block",
             width: "100%",

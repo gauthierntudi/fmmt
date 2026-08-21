@@ -1,10 +1,10 @@
 import ExcelJS from "exceljs";
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  if (!(await isAdminAuthenticated())) {
+  if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
 

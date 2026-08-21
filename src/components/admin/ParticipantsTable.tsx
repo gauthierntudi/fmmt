@@ -36,32 +36,85 @@ type ParticipantRow = {
 export function ParticipantsTable({
   initial,
   initialQuery,
+  initialType,
+  total,
+  page,
+  pageSize,
+  canDelete,
 }: {
   initial: ParticipantRow[];
   initialQuery: string;
+  initialType: string;
+  total: number;
+  page: number;
+  pageSize: number;
+  canDelete: boolean;
 }) {
   const router = useRouter();
   const [q, setQ] = useState(initialQuery);
+  const [type, setType] = useState(initialType);
   const [selected, setSelected] = useState<ParticipantRow | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const rows = useMemo(() => initial, [initial]);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  function pushFilters(nextPage = 1) {
+    const params = new URLSearchParams();
+    if (q.trim()) params.set("q", q.trim());
+    if (type) params.set("type", type);
+    if (nextPage > 1) params.set("page", String(nextPage));
+    router.push(`/admin/participants?${params.toString()}`);
+  }
 
   function search(e: React.FormEvent) {
     e.preventDefault();
-    const params = new URLSearchParams();
-    if (q.trim()) params.set("q", q.trim());
-    router.push(`/admin/participants?${params.toString()}`);
+    pushFilters(1);
+  }
+
+  async function removeParticipant(id: string) {
+    if (!canDelete) return;
+    if (!confirm("Supprimer cette inscription ?")) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/participants?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        alert("Suppression impossible");
+        return;
+      }
+      setSelected(null);
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
     <>
+      <div className="admin-stats">
+        <strong>{total}</strong> inscription{total > 1 ? "s" : ""}
+      </div>
+
       <div className="admin-toolbar">
-        <form onSubmit={search} style={{ display: "flex", gap: 8, flex: 1 }}>
+        <form onSubmit={search} style={{ display: "flex", gap: 8, flex: 1, flexWrap: "wrap" }}>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Rechercher (nom, email…)"
+            placeholder="Rechercher (nom, email, téléphone, pays…)"
           />
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="admin-select"
+          >
+            <option value="">Tous les types</option>
+            <option value="PARTICIPANT">Participant</option>
+            <option value="ARTISTE">Artiste</option>
+            <option value="OFFICIEL">Officiel</option>
+            <option value="MEDIA">Média</option>
+          </select>
           <button type="submit" className="btn btn-secondary trapezoid" style={{ fontSize: "1em" }}>
             Filtrer
           </button>
@@ -80,7 +133,7 @@ export function ParticipantsTable({
 
       <div className="panel table-wrap">
         {rows.length === 0 ? (
-          <p>Aucun participant</p>
+          <p>Aucune inscription</p>
         ) : (
           <table className="data">
             <thead>
@@ -88,6 +141,7 @@ export function ParticipantsTable({
                 <th>Date</th>
                 <th>Nom</th>
                 <th>Email</th>
+                <th>Téléphone</th>
                 <th>Pays</th>
                 <th>Type</th>
                 <th></th>
@@ -101,6 +155,7 @@ export function ParticipantsTable({
                     {p.prenom} {p.nom}
                   </td>
                   <td>{p.email}</td>
+                  <td>{p.telephone}</td>
                   <td>{p.paysNom}</td>
                   <td>{p.typeInscription}</td>
                   <td>
@@ -119,6 +174,32 @@ export function ParticipantsTable({
           </table>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="admin-pagination">
+          <button
+            type="button"
+            className="btn btn-secondary trapezoid"
+            style={{ fontSize: "0.9em" }}
+            disabled={page <= 1}
+            onClick={() => pushFilters(page - 1)}
+          >
+            Précédent
+          </button>
+          <span>
+            Page {page} / {totalPages}
+          </span>
+          <button
+            type="button"
+            className="btn btn-secondary trapezoid"
+            style={{ fontSize: "0.9em" }}
+            disabled={page >= totalPages}
+            onClick={() => pushFilters(page + 1)}
+          >
+            Suivant
+          </button>
+        </div>
+      )}
 
       {selected && (
         <div className="modal-backdrop" onClick={() => setSelected(null)}>
@@ -180,7 +261,18 @@ export function ParticipantsTable({
                 </>
               )}
             </dl>
-            <div className="form-actions">
+            <div className="form-actions" style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              {canDelete && (
+                <button
+                  type="button"
+                  className="btn btn-secondary trapezoid"
+                  style={{ fontSize: "0.95em", background: "#c62828" }}
+                  disabled={busy}
+                  onClick={() => void removeParticipant(selected.id)}
+                >
+                  Supprimer
+                </button>
+              )}
               <button type="button" className="btn btn-secondary trapezoid" onClick={() => setSelected(null)}>
                 Fermer
               </button>

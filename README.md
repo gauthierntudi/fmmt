@@ -36,6 +36,13 @@ Secrets GitHub requis (`Settings → Secrets and variables → Actions`) :
 | `VPS_APP_DIR` | `/opt/fmmt` (optionnel) |
 | `VPS_PORT` | `22` (optionnel) |
 
+## Admin
+
+- URL : `/admin/login` (email + mot de passe)
+- Rôles : **SUPER_ADMIN** (tout + utilisateurs) · **STAFF** (inscriptions + export)
+- Seed super admin : `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` au `prisma db seed`
+- Forcer reset MDP seed : `ADMIN_PASSWORD_RESET=true`
+
 ## Docker
 
 ### Production locale (Postgres + app)
