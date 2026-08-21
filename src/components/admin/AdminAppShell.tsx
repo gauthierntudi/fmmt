@@ -18,7 +18,7 @@ function NavIcon({ id }: { id: string }) {
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 1.75,
+    strokeWidth: 1.7,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true,
@@ -28,10 +28,10 @@ function NavIcon({ id }: { id: string }) {
     case "dashboard":
       return (
         <svg {...common}>
-          <rect x="3" y="3" width="7" height="9" rx="1" />
-          <rect x="14" y="3" width="7" height="5" rx="1" />
-          <rect x="14" y="12" width="7" height="9" rx="1" />
-          <rect x="3" y="16" width="7" height="5" rx="1" />
+          <rect x="3" y="3" width="7" height="9" rx="1.5" />
+          <rect x="14" y="3" width="7" height="5" rx="1.5" />
+          <rect x="14" y="12" width="7" height="9" rx="1.5" />
+          <rect x="3" y="16" width="7" height="5" rx="1.5" />
         </svg>
       );
     case "participants":
@@ -128,23 +128,38 @@ export function AdminAppShell({
     router.refresh();
   }
 
+  const primaryGroups = adminNavGroups.filter((g) => g.id !== "system");
+  const systemGroup = adminNavGroups.find((g) => g.id === "system");
+
   return (
     <div className={`admin-app${open ? " is-nav-open" : ""}`}>
       <aside className="admin-sidebar" aria-label="Navigation admin">
         <div className="admin-sidebar-brand">
-          <Image
-            src="/img/logo-fr-01.png"
-            alt="FMMT"
-            width={120}
-            height={40}
-            className="admin-sidebar-logo"
-            priority
-          />
-          <p className="admin-sidebar-edition">Administration · 2026</p>
+          <div className="admin-brand-row">
+            <Image
+              src="/img/logo-fr-01.png"
+              alt="FMMT"
+              width={112}
+              height={36}
+              className="admin-sidebar-logo"
+              priority
+            />
+          </div>
+          <div className="admin-workspace">
+            <span className="admin-workspace-avatar" aria-hidden>
+              {user.name.slice(0, 1).toUpperCase()}
+            </span>
+            <div className="admin-workspace-meta">
+              <p className="admin-workspace-name">{user.name}</p>
+              <p className="admin-workspace-role">
+                {user.role === "SUPER_ADMIN" ? "Super admin" : "Staff"}
+              </p>
+            </div>
+          </div>
         </div>
 
         <nav className="admin-sidebar-nav">
-          {adminNavGroups.map((group) => {
+          {primaryGroups.map((group) => {
             const items = group.items.filter((item) => canSeeNavItem(item, user.role));
             if (items.length === 0) return null;
             return (
@@ -164,7 +179,7 @@ export function AdminAppShell({
                               <NavIcon id={item.id} />
                               <span>{item.label}</span>
                             </span>
-                            <span className="admin-nav-soon">Bientôt</span>
+                            <span className="admin-nav-soon">Soon</span>
                           </span>
                         </li>
                       );
@@ -191,17 +206,35 @@ export function AdminAppShell({
         </nav>
 
         <div className="admin-sidebar-footer">
-          <div className="admin-user-chip">
-            <span className="admin-user-avatar" aria-hidden>
-              {user.name.slice(0, 1).toUpperCase()}
-            </span>
-            <div className="admin-user-meta">
-              <p className="admin-user-name">{user.name}</p>
-              <p className="admin-user-role">
-                {user.role === "SUPER_ADMIN" ? "Super admin" : "Staff"}
-              </p>
-            </div>
-          </div>
+          {systemGroup &&
+            systemGroup.items
+              .filter((item) => canSeeNavItem(item, user.role))
+              .map((item) =>
+                item.comingSoon ? (
+                  <span key={item.id} className="admin-nav-item is-soon">
+                    <span className="admin-nav-item-main">
+                      <NavIcon id={item.id} />
+                      <span>{item.label}</span>
+                    </span>
+                  </span>
+                ) : (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className={
+                      pathname.startsWith(item.href)
+                        ? "admin-nav-item is-active"
+                        : "admin-nav-item"
+                    }
+                    onClick={() => setOpen(false)}
+                  >
+                    <span className="admin-nav-item-main">
+                      <NavIcon id={item.id} />
+                      <span>{item.label}</span>
+                    </span>
+                  </Link>
+                ),
+              )}
           <button type="button" className="admin-logout" onClick={() => void logout()}>
             Déconnexion
           </button>
@@ -222,11 +255,15 @@ export function AdminAppShell({
           </button>
           <div className="admin-topbar-title">
             <h1>{current?.label || "Administration"}</h1>
-            {current?.description && <p className="admin-page-desc">{current.description}</p>}
           </div>
-          <a className="admin-site-link" href="https://fmmt.events" target="_blank" rel="noreferrer">
-            Site public
-          </a>
+          <div className="admin-topbar-actions">
+            <a className="admin-site-link" href="https://fmmt.events" target="_blank" rel="noreferrer">
+              Site public
+            </a>
+            <span className="admin-top-avatar" aria-hidden>
+              {user.name.slice(0, 1).toUpperCase()}
+            </span>
+          </div>
         </header>
 
         <div className="admin-content">{children}</div>
