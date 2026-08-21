@@ -2,11 +2,29 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendConfirmationEmails } from "@/lib/mail";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 import { parseDate, validateRegistration } from "@/lib/validations/register";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+
+    const remoteIp =
+      request.headers.get("cf-connecting-ip") ||
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      null;
+
+    const turnstileOk = await verifyTurnstileToken(
+      typeof body?.turnstileToken === "string" ? body.turnstileToken : null,
+      remoteIp,
+    );
+    if (!turnstileOk) {
+      return NextResponse.json(
+        { message: "TURNSTILE_FAILED", error: "TURNSTILE_FAILED" },
+        { status: 400 },
+      );
+    }
+
     const validated = validateRegistration(body);
 
     if (!validated.success) {

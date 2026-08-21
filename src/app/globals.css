@@ -530,6 +530,12 @@ a {
   font-family: cbook, sans-serif;
 }
 
+.turnstile-box {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0 1rem;
+}
+
 /* Buttons */
 .btn {
   display: inline-block;

@@ -61,6 +61,8 @@
     "errors": {
       "DUPLICATE_EMAIL": "This email address is already registered.",
       "DUPLICATE_PHONE": "This phone number is already registered.",
+      "TURNSTILE_REQUIRED": "Please complete the anti-robot check.",
+      "TURNSTILE_FAILED": "Anti-robot verification failed. Please try again.",
       "TRAVEL_REQUIRED": "Travel details are required for non-DRC participants.",
       "HOTEL_REQUIRED": "Hotel and room type are required for non-DRC participants.",
       "phoneInvalid": "Invalid phone number.",

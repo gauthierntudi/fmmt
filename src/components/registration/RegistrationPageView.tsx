@@ -1,9 +1,12 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { RegistrationWizard } from "@/components/registration/RegistrationWizard";
+import { getTurnstileSiteKey, isTurnstileEnabled } from "@/lib/turnstile";
 
 export async function RegistrationPageView() {
   const t = await getTranslations("Register");
+  const turnstileEnabled = isTurnstileEnabled();
+  const turnstileSiteKey = turnstileEnabled ? getTurnstileSiteKey() : "";
 
   return (
     <main>
@@ -37,7 +40,10 @@ export async function RegistrationPageView() {
       <div className="container register-form-wrap">
         <div className="row justify-content-center">
           <div className="col-md-8">
-            <RegistrationWizard />
+            <RegistrationWizard
+              turnstileEnabled={turnstileEnabled}
+              turnstileSiteKey={turnstileSiteKey}
+            />
           </div>
         </div>
       </div>

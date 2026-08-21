@@ -9,6 +9,7 @@ import {
   FormDatePicker,
   FormTimePicker,
 } from "@/components/registration/FormDateTimePickers";
+import { TurnstileWidget } from "@/components/registration/TurnstileWidget";
 import { hotelCategories, hotelsData } from "@/lib/hotels";
 
 type FormState = {
@@ -53,7 +54,13 @@ const initialState: FormState = {
   roomType: "",
 };
 
-export function RegistrationWizard() {
+export function RegistrationWizard({
+  turnstileEnabled = false,
+  turnstileSiteKey = "",
+}: {
+  turnstileEnabled?: boolean;
+  turnstileSiteKey?: string;
+}) {
   const t = useTranslations("Register");
   const locale = useLocale();
   const router = useRouter();
@@ -61,6 +68,7 @@ export function RegistrationWizard() {
   const [form, setForm] = useState<FormState>(initialState);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   const isRDC = form.paysCode === "CD";
 
@@ -127,6 +135,10 @@ export function RegistrationWizard() {
 
   async function handleSubmit() {
     if (!validateStep(3)) return;
+    if (turnstileEnabled && !turnstileToken) {
+      setError(t("errors.TURNSTILE_REQUIRED"));
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -150,6 +162,7 @@ export function RegistrationWizard() {
       numeroVol: isRDC ? null : form.numeroVol || null,
       hotel: form.hotel || null,
       roomType: form.roomType || null,
+      turnstileToken: turnstileEnabled ? turnstileToken : undefined,
     };
 
     try {
@@ -164,6 +177,10 @@ export function RegistrationWizard() {
         const code = json.error as string;
         if (code === "DUPLICATE_EMAIL") setError(t("errors.DUPLICATE_EMAIL"));
         else if (code === "DUPLICATE_PHONE") setError(t("errors.DUPLICATE_PHONE"));
+        else if (code === "TURNSTILE_FAILED" || code === "TURNSTILE_REQUIRED") {
+          setError(t("errors.TURNSTILE_FAILED"));
+          setTurnstileToken("");
+        }
         else if (code === "TRAVEL_REQUIRED") setError(t("errors.TRAVEL_REQUIRED"));
         else if (code === "HOTEL_REQUIRED") setError(t("errors.HOTEL_REQUIRED"));
         else setError(t("errors.generic"));
@@ -560,13 +577,23 @@ export function RegistrationWizard() {
             )}
           </div>
           <div className="text-center mt-4">
+            {turnstileEnabled && turnstileSiteKey && (
+              <div className="turnstile-box mb-3">
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  language={locale}
+                  onToken={setTurnstileToken}
+                  onExpire={() => setTurnstileToken("")}
+                />
+              </div>
+            )}
             <button type="button" className="btn btn-secondary trapezoid" onClick={() => setStep(2)}>
               {t("back")}
             </button>
             <button
               type="button"
               className="btn btn-success-2 trapezoid"
-              disabled={submitting}
+              disabled={submitting || (turnstileEnabled && !turnstileToken)}
               onClick={handleSubmit}
             >
               {submitting ? t("submitting") : t("submit")}
