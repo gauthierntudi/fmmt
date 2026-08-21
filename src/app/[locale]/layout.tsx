@@ -30,7 +30,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <Link href="/" className="brand">
           <Image
             src={locale === "en" ? "/img/logo-en-01.png" : "/img/logo-fr-01.png"}
-            alt="FMMT"
+            alt="FMMT 2e Edition 2026"
             width={140}
             height={48}
             style={{ height: 48, width: "auto" }}
