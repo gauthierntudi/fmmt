@@ -32,10 +32,11 @@ jobs:
               echo "Clone initial dans $APP_DIR"
               sudo mkdir -p "$APP_DIR"
               sudo chown -R "$(whoami):$(whoami)" "$APP_DIR"
-              git clone git@github.com:gauthierntudi/fmmt.git "$APP_DIR"
+              git clone https://github.com/gauthierntudi/fmmt.git "$APP_DIR"
             fi
 
             cd "$APP_DIR"
+            git remote set-url origin https://github.com/gauthierntudi/fmmt.git
             git fetch origin main
             git checkout main
             git reset --hard origin/main
